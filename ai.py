@@ -137,14 +137,16 @@ def dfs(graph, start, end):
     tracking={start:(0,0)}
     stack=[start]
     path=[]
-    while len(stack):
-        current=stack.pop()
-        if current==end:
+    while len(stack):   # Còn phần tử trong stack
+        current=stack.pop()     # Lấy phần tử cuối stack
+        if current==end:    # Đã đến đích thì break
             break
-        for neighbor in graph[current]:
-            if neighbor not in tracking:
-                tracking[neighbor]=current
-                stack.append(neighbor)
+        for neighbor in graph[current]:     # Xét 4 vị trí liền kề vị trí đang xét current
+            if neighbor not in tracking:    # Nếu vị trí neighbor chưa được xét trước đó
+                tracking[neighbor]=current  # Đánh dấu vị trí cha đi đến neighbor là current
+                stack.append(neighbor)      # Thêm vị trí neighbor vào stack
+    
+    # Backtracking
     temp=end
     while temp!=(0,0):
         path.insert(0,tracking[temp])
@@ -157,12 +159,14 @@ def bfs(graph,start,end):
     tracking={start:(0,0)}
     path=[]
     current=start
-    while current!=end:
-        for neighbor in graph[current]:
-            if neighbor not in tracking:
-                queue.append(neighbor)
-                tracking[neighbor]=current
-        current=queue.pop(0)
+    while current!=end:     # Tìm khi vẫn chưa đến đích
+        for neighbor in graph[current]:     # Xét 4 vị trí liền kề vị trí đang xét current
+            if neighbor not in tracking:    # Nếu vị trí neighbor chưa được xét trước đó
+                queue.append(neighbor)      # Thêm vị trí neighbor vào queue
+                tracking[neighbor]=current  # Đánh dấu vị trí cha đi đến neighbor là current
+        current=queue.pop(0)        # Lấy phần tử đầu queue
+    
+    # Backtracking
     temp=end
     while temp!=(0,0):
         path.insert(0,tracking[temp])
