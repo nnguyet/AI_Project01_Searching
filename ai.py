@@ -1,21 +1,19 @@
 import os
 import matplotlib.pyplot as plt
 
-with open('maze_map.txt', 'w') as outfile:
-  outfile.write('2\n')
-  outfile.write('3 6 -3\n')
-  outfile.write('5 14 -1\n')
-  outfile.write('xxxxxxxxxxxxxxxxxxxxxx\n')
-  outfile.write('x   x   xx xx        x\n')
-  outfile.write('x     x     xxxxxxxxxx\n')
-  outfile.write('x x   +xx  xxxx xxx xx\n')
-  outfile.write('  x   x x xx   xxxx  x\n')
-  outfile.write('x          xx +xx  x x\n')
-  outfile.write('xxxxxxx x      xx  x x\n')
-  outfile.write('xxxxxxxxx  x x  xx   x\n')
-  outfile.write('x          x x Sx x  x\n')
-  outfile.write('xxxxx x  x x x     x x\n')
-  outfile.write('xxxxxxxxxxxxxxxxxxxxxx')
+with open('maze_map_2.txt', 'w') as outfile:
+    outfile.write('0\n')
+    outfile.write('xxxxxxxxxxxxxxxxxxxxxx\n')
+    outfile.write('x       xx xx        x\n')
+    outfile.write('x     x       xxxxx  x\n')
+    outfile.write('x x   xxx  xxxx xxx  x\n')
+    outfile.write('x x   x x xx   xxx   x\n')
+    outfile.write('           xx  xx  x x\n')
+    outfile.write('xxxxxxx        xx  x x\n')
+    outfile.write('xxxxxxxxx  x x  xx   x\n')
+    outfile.write('x          x x  x    x\n')
+    outfile.write('xxxxx x  x x x S  xx x\n')
+    outfile.write('xxxxxxxxxxxxxxxxxxxxxx')
 
 def visualize_maze(matrix, bonus, start, end, route=None):
     """
@@ -63,8 +61,8 @@ def visualize_maze(matrix, bonus, start, end, route=None):
                         marker=direction[i],color='silver')
 
     plt.text(end[1],-end[0],'EXIT',color='red',
-         horizontalalignment='center',
-         verticalalignment='center')
+        horizontalalignment='center',
+        verticalalignment='center')
     plt.xticks([])
     plt.yticks([])
     plt.show()
@@ -73,23 +71,33 @@ def visualize_maze(matrix, bonus, start, end, route=None):
     print(f'Ending point (x, y) = {end[0], end[1]}')
     
     for _, point in enumerate(bonus):
-      print(f'Bonus point at position (x, y) = {point[0], point[1]} with point {point[2]}')
+        print(f'Bonus point at position (x, y) = {point[0], point[1]} with point {point[2]}')
 
 def read_file(file_name: str = 'maze.txt'):
-  f=open(file_name,'r')
-  n_bonus_points = int(next(f)[:-1])
-  bonus_points = []
-  for i in range(n_bonus_points):
-    x, y, reward = map(int, next(f)[:-1].split(' '))
-    bonus_points.append((x, y, reward))
+    f=open(file_name,'r')
+    n_bonus_points = int(next(f)[:-1])
+    bonus_points = []
+    for i in range(n_bonus_points):
+        x, y, reward = map(int, next(f)[:-1].split(' '))
+        bonus_points.append((x, y, reward))
 
-  text=f.read()
-  matrix=[list(i) for i in text.splitlines()]
-  f.close()
+    text=f.read()
+    matrix=[list(i) for i in text.splitlines()]
+    f.close()
 
-  return bonus_points, matrix
+    start = (-1,-1)
+    end = (-1,-1)
+    for i in range(len(matrix)):
+        for j in range(len(matrix[0])):
+            if matrix[i][j]=='S':
+                start = (i,j)
+            elif (i==0 or i==len(matrix)-1 or j==0 or j==len(matrix[0])-1) and matrix[i][j]==' ':
+                end = (i,j)
+            if start!=(-1,-1) and end!=(-1,-1):
+                return bonus_points, matrix, start, end
+    return bonus_points, matrix, start, end
 
-bonus_points, matrix = read_file('maze_map.txt')
+bonus_points, matrix, start, end = read_file('maze_map_2.txt')
 
 print(f'The height of the matrix: {len(matrix)}')
 print(f'The width of the matrix: {len(matrix[0])}')
@@ -131,8 +139,8 @@ for i in range(1,rows-1):
 #         self.neighbor=neighbor
 #     def
 
-start=(8,15)
-end=(4,0)
+# start=(9,15)
+# end=(5,0)
 def dfs(graph, start, end):
     tracking={start:(0,0)}
     stack=[start]
@@ -178,5 +186,5 @@ wayoutDFS=dfs(graph, start, end)
 wayoutBFS=bfs(graph, start, end)
 # for m in matrix:
 #     print(m)
-visualize_maze(matrix,bonus_points,start,end,wayoutBFS)
-# visualize_maze(matrix,bonus_points,start,end,wayoutDFS)
+# visualize_maze(matrix,bonus_points,start,end,wayoutBFS)
+visualize_maze(matrix,bonus_points,start,end,wayoutDFS)
