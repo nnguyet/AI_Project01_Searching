@@ -99,7 +99,7 @@ def read_file(file_name: str = 'maze.txt'):
                 return bonus_points, matrix, start, end
     return bonus_points, matrix, start, end
 
-bonus_points, matrix, start, end = read_file('maze_map_2.txt')
+bonus_points, matrix, start, end = read_file('maze_map.txt')
 
 print(f'The height of the matrix: {len(matrix)}')
 print(f'The width of the matrix: {len(matrix[0])}')
@@ -223,7 +223,33 @@ def GBFS():
         track = parent[track]
     return path
 
-sol_GBFS = GBFS()
-visualize_maze(matrix,bonus_points,start,end,sol_GBFS)
+# sol_GBFS = GBFS()
+# visualize_maze(matrix,bonus_points,start,end,sol_GBFS)
 
-# A*
+# A*    F(n) = G(n) + H(n)      -> G(n) = bước đi từ start đến n
+def A_star():
+    heap = []       # Priority Queue lưu các biên, phần tử có dạng (f,(x,y)) -> f = g+h
+    # Dic lưu thông tin của (x,y):[g,h,(a,b)] -> thông tin g, h và nút cha (a,b) của (x,y)
+    info = {start:[0,heuristic(start),(0,0)]}
+    current = start
+    while current!=end:         # Khi chưa đến đích
+        for neighbor in graph[current]:     # Xét 4 vị trí liền kề vị trí đang xét current
+            if neighbor not in info:      # Nếu vị trí neighbor chưa được xét (chưa có thông tin)
+                info[neighbor] = [info[current][0]+1, heuristic(neighbor), current] # Thêm thông tin neighbor
+                heappush(heap, (info[neighbor][0] + info[neighbor][1],neighbor))      # Thêm neighbor vào heap
+            # Nếu neighbor đã được xét, cần kiểm tra lại g để tối ưu đường đi
+            elif info[neighbor][0] > info[current][0] + 1:
+                info[neighbor][0] = info[current][0] + 1    # Cập nhật lại g
+                info[neighbor][2] = current                 # Cập nhật lại cha
+        current = heappop(heap)[1]     # Lấy phần tử đầu heap
+
+    # Backtracking
+    path = []
+    track = end
+    while track!=(0,0):
+        path.insert(0, track)
+        track = info[track][2]
+    return path
+
+sol_Astar = A_star()
+visualize_maze(matrix,bonus_points,start,end,sol_Astar)
