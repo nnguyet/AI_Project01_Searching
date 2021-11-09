@@ -1,19 +1,21 @@
 import os
 import matplotlib.pyplot as plt
+from heapq import heappop
+from heapq import heappush
 
-with open('maze_map_2.txt', 'w') as outfile:
-    outfile.write('0\n')
-    outfile.write('xxxxxxxxxxxxxxxxxxxxxx\n')
-    outfile.write('x       xx xx        x\n')
-    outfile.write('x     x       xxxxx  x\n')
-    outfile.write('x x   xxx  xxxx xxx  x\n')
-    outfile.write('x x   x x xx   xxx   x\n')
-    outfile.write('           xx  xx  x x\n')
-    outfile.write('xxxxxxx        xx  x x\n')
-    outfile.write('xxxxxxxxx  x x  xx   x\n')
-    outfile.write('x          x x  x    x\n')
-    outfile.write('xxxxx x  x x x S  xx x\n')
-    outfile.write('xxxxxxxxxxxxxxxxxxxxxx')
+# with open('maze_map_2.txt', 'w') as outfile:
+#     outfile.write('0\n')
+#     outfile.write('xxxxxxxxxxxxxxxxxxxxxx\n')
+#     outfile.write('x       xx xx        x\n')
+#     outfile.write('x     x       xxxxx  x\n')
+#     outfile.write('x x   xxx  xxxx xxx  x\n')
+#     outfile.write('x x   x x xx   xxx   x\n')
+#     outfile.write('           xx  xx  x x\n')
+#     outfile.write('xxxxxxx        xx  x x\n')
+#     outfile.write('xxxxxxxxx  x x  xx   x\n')
+#     outfile.write('x          x x  x    x\n')
+#     outfile.write('xxxxx x  x x x S  xx x\n')
+#     outfile.write('xxxxxxxxxxxxxxxxxxxxxx')
 
 def visualize_maze(matrix, bonus, start, end, route=None):
     """
@@ -139,8 +141,7 @@ for i in range(1,rows-1):
 #         self.neighbor=neighbor
 #     def
 
-# start=(9,15)
-# end=(5,0)
+# Tìm kiếm mù
 def dfs(graph, start, end):
     tracking={start:(0,0)}
     stack=[start]
@@ -182,9 +183,47 @@ def bfs(graph,start,end):
     path.append(end)
     return path[1:]
 
-wayoutDFS=dfs(graph, start, end)
-wayoutBFS=bfs(graph, start, end)
+# wayoutDFS=dfs(graph, start, end)
+# wayoutBFS=bfs(graph, start, end)
 # for m in matrix:
 #     print(m)
 # visualize_maze(matrix,bonus_points,start,end,wayoutBFS)
-visualize_maze(matrix,bonus_points,start,end,wayoutDFS)
+# visualize_maze(matrix,bonus_points,start,end,wayoutDFS)
+
+# Tìm kiếm có thông tin
+
+# Hàm Heuristic
+# 1. Khoảng cách Manhattan: |end.X - pos.X| + |end.Y - pos.Y|
+def heuristic(pos):
+    return abs(pos[0]-end[0]) + abs(pos[1]-end[1])
+# def heapsort(iterable):
+#     h = []
+#     for value in iterable:
+#         heappush(h, value)
+#     return [heappop(h) for i in range(len(h))]
+
+# print(heapsort([1, 3, 5, 7, 9, 2, 4, 6, 8, 0]))
+# GBFS
+def GBFS():
+    heap = []       # Priority Queue lưu các biên, phần tử có dạng (h,(x,y)) -> h = heuristic của (x,y)
+    parent = {start:(0,0)}    # Dict để truy vết: (x,y):(a,b) -> Nút cha đi tới (x,y) là (a,b)
+    current = start
+    while current!=end:         # Khi chưa đến đích
+        for neighbor in graph[current]:     # Xét 4 vị trí liền kề vị trí đang xét current
+            if neighbor not in parent:      # Nếu vị trí neighbor chưa được xét (chưa có nút nào đi tới)
+                heappush(heap, (heuristic(neighbor),neighbor))      # Thêm neighbor vào heap
+                parent[neighbor] = current      # Đánh dấu cha của neighbor là current
+        current = heappop(heap)[1]     # Lấy phần tử đầu heap
+
+    # Backtracking
+    path = []
+    track = end
+    while track!=(0,0):
+        path.insert(0, track)
+        track = parent[track]
+    return path
+
+sol_GBFS = GBFS()
+visualize_maze(matrix,bonus_points,start,end,sol_GBFS)
+
+# A*
