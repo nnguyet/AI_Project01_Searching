@@ -2,6 +2,7 @@ import os
 import matplotlib.pyplot as plt
 from heapq import heappop
 from heapq import heappush
+from math import sqrt
 
 # with open('maze_map_2.txt', 'w') as outfile:
 #     outfile.write('0\n')
@@ -99,7 +100,7 @@ def read_file(file_name: str = 'maze.txt'):
                 return bonus_points, matrix, start, end
     return bonus_points, matrix, start, end
 
-bonus_points, matrix, start, end = read_file('maze_map.txt')
+bonus_points, matrix, start, end = read_file('maze_map_2.txt')
 
 print(f'The height of the matrix: {len(matrix)}')
 print(f'The width of the matrix: {len(matrix[0])}')
@@ -194,13 +195,12 @@ def bfs(graph,start,end):
 
 # Hàm Heuristic
 # 1. Khoảng cách Manhattan: |end.X - pos.X| + |end.Y - pos.Y|
-def heuristic(pos):
+def heuristic_manhattan(pos):
     return abs(pos[0]-end[0]) + abs(pos[1]-end[1])
-# def heapsort(iterable):
-#     h = []
-#     for value in iterable:
-#         heappush(h, value)
-#     return [heappop(h) for i in range(len(h))]
+
+# 2. Khoảng cách Euclid: sqrt((end.X - pos.X)^2 + (end.Y - pos.Y)^2)
+def heuristic_euclid(pos):
+    return sqrt((end[0]-pos[0])**2 + (end[1]-pos[1])**2)
 
 # print(heapsort([1, 3, 5, 7, 9, 2, 4, 6, 8, 0]))
 # GBFS
@@ -211,7 +211,7 @@ def GBFS():
     while current!=end:         # Khi chưa đến đích
         for neighbor in graph[current]:     # Xét 4 vị trí liền kề vị trí đang xét current
             if neighbor not in parent:      # Nếu vị trí neighbor chưa được xét (chưa có nút nào đi tới)
-                heappush(heap, (heuristic(neighbor),neighbor))      # Thêm neighbor vào heap
+                heappush(heap, (heuristic_euclid(neighbor),neighbor))      # Thêm neighbor vào heap
                 parent[neighbor] = current      # Đánh dấu cha của neighbor là current
         current = heappop(heap)[1]     # Lấy phần tử đầu heap
 
@@ -230,12 +230,12 @@ def GBFS():
 def A_star():
     heap = []       # Priority Queue lưu các biên, phần tử có dạng (f,(x,y)) -> f = g+h
     # Dic lưu thông tin của (x,y):[g,h,(a,b)] -> thông tin g, h và nút cha (a,b) của (x,y)
-    info = {start:[0,heuristic(start),(0,0)]}
+    info = {start:[0,heuristic_euclid(start),(0,0)]}
     current = start
     while current!=end:         # Khi chưa đến đích
         for neighbor in graph[current]:     # Xét 4 vị trí liền kề vị trí đang xét current
             if neighbor not in info:      # Nếu vị trí neighbor chưa được xét (chưa có thông tin)
-                info[neighbor] = [info[current][0]+1, heuristic(neighbor), current] # Thêm thông tin neighbor
+                info[neighbor] = [info[current][0]+1, heuristic_euclid(neighbor), current] # Thêm thông tin neighbor
                 heappush(heap, (info[neighbor][0] + info[neighbor][1],neighbor))      # Thêm neighbor vào heap
             # Nếu neighbor đã được xét, cần kiểm tra lại g để tối ưu đường đi
             elif info[neighbor][0] > info[current][0] + 1:
