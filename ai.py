@@ -4,20 +4,6 @@ from heapq import heappop
 from heapq import heappush
 from math import sqrt
 
-# with open('maze_map_2.txt', 'w') as outfile:
-#     outfile.write('0\n')
-#     outfile.write('xxxxxxxxxxxxxxxxxxxxxx\n')
-#     outfile.write('x       xx xx        x\n')
-#     outfile.write('x     x       xxxxx  x\n')
-#     outfile.write('x x   xxx  xxxx xxx  x\n')
-#     outfile.write('x x   x x xx   xxx   x\n')
-#     outfile.write('           xx  xx  x x\n')
-#     outfile.write('xxxxxxx        xx  x x\n')
-#     outfile.write('xxxxxxxxx  x x  xx   x\n')
-#     outfile.write('x          x x  x    x\n')
-#     outfile.write('xxxxx x  x x x S  xx x\n')
-#     outfile.write('xxxxxxxxxxxxxxxxxxxxxx')
-
 def visualize_maze(matrix, bonus, start, end, route=None):
     """
     Args:
@@ -88,19 +74,9 @@ def read_file(file_name: str = 'maze.txt'):
     matrix=[list(i) for i in text.splitlines()]
     f.close()
 
-    start = (-1,-1)
-    end = (-1,-1)
-    for i in range(len(matrix)):
-        for j in range(len(matrix[0])):
-            if matrix[i][j]=='S':
-                start = (i,j)
-            elif (i==0 or i==len(matrix)-1 or j==0 or j==len(matrix[0])-1) and matrix[i][j]==' ':
-                end = (i,j)
-            if start!=(-1,-1) and end!=(-1,-1):
-                return bonus_points, matrix, start, end
-    return bonus_points, matrix, start, end
+    return bonus_points, matrix
 
-bonus_points, matrix, start, end = read_file('maze_map_2.txt')
+bonus_points, matrix = read_file('maze_map4.txt')
 
 print(f'The height of the matrix: {len(matrix)}')
 print(f'The width of the matrix: {len(matrix[0])}')
@@ -116,9 +92,8 @@ for i in range(len(matrix)):
                 
         else:
             pass
-        
-# visualize_maze(matrix,bonus_points,start,end)
 
+# Graph lưu vị trí liền kề có thể đi tới được từ vị trí (i,j)
 rows=len(matrix)
 cols=len(matrix[0])
 graph={}
@@ -130,17 +105,6 @@ for i in range(1,rows-1):
                 if matrix[loc[0]][loc[1]]==' ':
                     adj.append(loc)
             graph[(i,j)]=adj
-
-# for key,val in graph.items():
-#     print(key,':',val)
-
-# class Node:
-#     visited=False
-#     parent=(0,0)
-#     def __init__(self,position=(0,0),neighbor=[]):
-#         self.position=position
-#         self.neighbor=neighbor
-#     def
 
 # Tìm kiếm mù
 def dfs(graph, start, end):
@@ -184,13 +148,6 @@ def bfs(graph,start,end):
     path.append(end)
     return path[1:]
 
-# wayoutDFS=dfs(graph, start, end)
-# wayoutBFS=bfs(graph, start, end)
-# for m in matrix:
-#     print(m)
-# visualize_maze(matrix,bonus_points,start,end,wayoutBFS)
-# visualize_maze(matrix,bonus_points,start,end,wayoutDFS)
-
 # Tìm kiếm có thông tin
 
 # Hàm Heuristic
@@ -202,7 +159,6 @@ def heuristic_manhattan(pos):
 def heuristic_euclid(pos):
     return sqrt((end[0]-pos[0])**2 + (end[1]-pos[1])**2)
 
-# print(heapsort([1, 3, 5, 7, 9, 2, 4, 6, 8, 0]))
 # GBFS
 def GBFS():
     heap = []       # Priority Queue lưu các biên, phần tử có dạng (h,(x,y)) -> h = heuristic của (x,y)
@@ -223,15 +179,13 @@ def GBFS():
         track = parent[track]
     return path
 
-# sol_GBFS = GBFS()
-# visualize_maze(matrix,bonus_points,start,end,sol_GBFS)
-
 # A*    F(n) = G(n) + H(n)      -> G(n) = bước đi từ start đến n
 def A_star():
     heap = []       # Priority Queue lưu các biên, phần tử có dạng (f,(x,y)) -> f = g+h
-    # Dic lưu thông tin của (x,y):[g,h,(a,b)] -> thông tin g, h và nút cha (a,b) của (x,y)
+    # Dict lưu thông tin của (x,y):[g,h,(a,b)] -> thông tin g, h và nút cha (a,b) của (x,y)
     info = {start:[0,heuristic_euclid(start),(0,0)]}
     current = start
+
     while current!=end:         # Khi chưa đến đích
         for neighbor in graph[current]:     # Xét 4 vị trí liền kề vị trí đang xét current
             if neighbor not in info:      # Nếu vị trí neighbor chưa được xét (chưa có thông tin)
@@ -251,5 +205,11 @@ def A_star():
         track = info[track][2]
     return path
 
+# wayoutDFS=dfs(graph, start, end)
+# wayoutBFS=bfs(graph, start, end)
+# visualize_maze(matrix,bonus_points,start,end,wayoutBFS)
+# visualize_maze(matrix,bonus_points,start,end,wayoutDFS)
+# sol_GBFS = GBFS()
+# visualize_maze(matrix,bonus_points,start,end,sol_GBFS)
 sol_Astar = A_star()
 visualize_maze(matrix,bonus_points,start,end,sol_Astar)
