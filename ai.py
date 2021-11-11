@@ -102,7 +102,7 @@ for i in range(1,rows-1):
         if matrix[i][j]!='x':
             adj=[]
             for loc in [(i,j+1),(i,j-1),(i+1,j),(i-1,j)]:
-                if matrix[loc[0]][loc[1]]==' ':
+                if matrix[loc[0]][loc[1]]!='x':
                     adj.append(loc)
             graph[(i,j)]=adj
 
