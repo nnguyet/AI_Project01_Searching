@@ -76,7 +76,7 @@ def read_file(file_name: str = 'maze.txt'):
 
     return bonus_points, matrix
 
-bonus_points, matrix = read_file('maze_map4.txt')
+bonus_points, matrix = read_file('bonus_map5.txt')
 
 print(f'The height of the matrix: {len(matrix)}')
 print(f'The width of the matrix: {len(matrix[0])}')
@@ -150,14 +150,9 @@ def bfs(graph,start,end):
 
 # Tìm kiếm có thông tin
 
-# Hàm Heuristic
-# 1. Khoảng cách Manhattan: |end.X - pos.X| + |end.Y - pos.Y|
-def heuristic_manhattan(pos):
+# Hàm Heuristic - khoảng cách Manhattan: |end.X - pos.X| + |end.Y - pos.Y|
+def heuristic(pos, end):
     return abs(pos[0]-end[0]) + abs(pos[1]-end[1])
-
-# 2. Khoảng cách Euclid: sqrt((end.X - pos.X)^2 + (end.Y - pos.Y)^2)
-def heuristic_euclid(pos):
-    return sqrt((end[0]-pos[0])**2 + (end[1]-pos[1])**2)
 
 # GBFS
 def GBFS():
@@ -167,7 +162,7 @@ def GBFS():
     while current!=end:         # Khi chưa đến đích
         for neighbor in graph[current]:     # Xét 4 vị trí liền kề vị trí đang xét current
             if neighbor not in parent:      # Nếu vị trí neighbor chưa được xét (chưa có nút nào đi tới)
-                heappush(heap, (heuristic_euclid(neighbor),neighbor))      # Thêm neighbor vào heap
+                heappush(heap, (heuristic(neighbor, end),neighbor))      # Thêm neighbor vào heap
                 parent[neighbor] = current      # Đánh dấu cha của neighbor là current
         current = heappop(heap)[1]     # Lấy phần tử đầu heap
 
@@ -183,13 +178,13 @@ def GBFS():
 def A_star():
     heap = []       # Priority Queue lưu các biên, phần tử có dạng (f,(x,y)) -> f = g+h
     # Dict lưu thông tin của (x,y):[g,h,(a,b)] -> thông tin g, h và nút cha (a,b) của (x,y)
-    info = {start:[0,heuristic_euclid(start),(0,0)]}
+    info = {start:[0,heuristic(start, end),(0,0)]}
     current = start
 
     while current!=end:         # Khi chưa đến đích
         for neighbor in graph[current]:     # Xét 4 vị trí liền kề vị trí đang xét current
             if neighbor not in info:      # Nếu vị trí neighbor chưa được xét (chưa có thông tin)
-                info[neighbor] = [info[current][0]+1, heuristic_euclid(neighbor), current] # Thêm thông tin neighbor
+                info[neighbor] = [info[current][0]+1, heuristic(neighbor, end), current] # Thêm thông tin neighbor
                 heappush(heap, (info[neighbor][0] + info[neighbor][1],neighbor))      # Thêm neighbor vào heap
             # Nếu neighbor đã được xét, cần kiểm tra lại g để tối ưu đường đi
             elif info[neighbor][0] > info[current][0] + 1:
@@ -205,11 +200,53 @@ def A_star():
         track = info[track][2]
     return path
 
+# Bonus Map
+def find_path(begin, end, bonus, take_path = False):
+    heap = [(0, begin)]
+    info = {begin:[0,heuristic(begin, end),0,(0,0)]}
+    way_out = False
+
+    while (len(heap)):
+        current = heappop(heap)[1]
+        if current==end:
+            way_out = True
+            break
+        for neighbor in graph[current]:
+            if neighbor not in info:
+                g = info[current][0] + 1
+                h = heuristic(neighbor, end)
+                b = 0
+                if neighbor in bonus:
+                    b = bonus[neighbor]
+                info[neighbor] = [g, h, b, current]
+                heappush(heap,(g+h+b, neighbor))
+            elif info[neighbor][0] > info[current][0] + 1:
+                info[neighbor][0] = info[current][0] + 1
+                info[neighbor][3] = current
+
+    path = []
+    cost = 0
+    track = end
+    if way_out:
+        while track!=(0,0):
+            path.insert(0, track)
+            cost += 1 + info[track][2]
+            track = info[track][3]
+    if take_path:
+        return way_out, cost, path
+    return way_out, cost
+
 # wayoutDFS=dfs(graph, start, end)
 # wayoutBFS=bfs(graph, start, end)
 # visualize_maze(matrix,bonus_points,start,end,wayoutBFS)
 # visualize_maze(matrix,bonus_points,start,end,wayoutDFS)
 # sol_GBFS = GBFS()
 # visualize_maze(matrix,bonus_points,start,end,sol_GBFS)
-sol_Astar = A_star()
-visualize_maze(matrix,bonus_points,start,end,sol_Astar)
+# sol_Astar = A_star()
+# visualize_maze(matrix,bonus_points,start,end,sol_Astar)
+bonus_dict = {(x[0],x[1]):x[2] for x in bonus_points}
+#print(bonus_dict)
+wayout, cost, b_path = find_path(start, end, bonus_dict, True)
+print(wayout)
+print(cost)
+visualize_maze(matrix,bonus_points,start,end,b_path)
