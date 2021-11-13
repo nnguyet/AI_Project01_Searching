@@ -76,7 +76,7 @@ def read_file(file_name: str = 'maze.txt'):
 
     return bonus_points, matrix
 
-bonus_points, matrix = read_file('bonus_map3.txt')
+bonus_points, matrix = read_file('bonus_map5.txt')
 
 print(f'The height of the matrix: {len(matrix)}')
 print(f'The width of the matrix: {len(matrix[0])}')
@@ -209,11 +209,11 @@ def A_star():
     return path
 
 # Bonus Map
-def find_path(begin, end, bonus):
+def find_path(begin, end, past_point):
     heap = [(0, begin)]
     info = {begin:[0,heuristic(begin, end),0,(0,0)]}
     way_out = False
-    #print(begin, end)
+
     while (len(heap)):
         current = heappop(heap)[1]
         if current==end:
@@ -224,8 +224,11 @@ def find_path(begin, end, bonus):
                 g = info[current][0] + 1
                 h = heuristic(neighbor, end)
                 b = 0
-                if neighbor in bonus:
-                    b = bonus[neighbor]
+                if neighbor not in past_point:
+                    for pts in bonus_points:
+                        if pts[0]==neighbor[0] and pts[1]==neighbor[1]:
+                            b = pts[2]
+                            break
                 info[neighbor] = [g, h, b, current]
                 heappush(heap,(g+h+b, neighbor))
             elif info[neighbor][0] > info[current][0] + 1:
@@ -244,51 +247,26 @@ def find_path(begin, end, bonus):
     return [way_out, cost, path]
 
 def solve_bonus_map():
-    path = [start]      # Lưu đường đi
-    cost = 0            # Lưu chi phí
-    begin = start       # Biến begin lưu vị trí bắt đầu đường đi
-    bonus_dict = {(x[0],x[1]):x[2] for x in bonus_points}       # Dict lưu điểm thưởng
-    while True:
-        min_path = (rows * cols, 0, (0, 0), [])     # min_path lưu đường đi nhỏ nhất tìm được khi đi qua điểm thưởng
-        for x in bonus_dict:        #Xét từng điểm thưởng
-            fisrt_path = find_path(begin,x, bonus_dict)     # Tìm đường đi từ begin đến điểm thưởng x
-            if not fisrt_path[0] or fisrt_path[1] > min_path[0]:        # Nếu không có đường đi
-                continue                                                # Hoặc đường đi lớn hơn min thì bỏ qua
+    queue = [start]
+    # short_matrix là dictionary lưu ma trận rút gọn, chỉ gồm các key là start, end và các bonus point
+    # value là [chi phí từ start đến key [0], đường đi đến key [1] ]
+    short_matrix = {(x[0],x[1]):[rows*cols, []] for x in bonus_points}
+    short_matrix[start] = [0, [start]]
+    short_matrix[end] = [rows*cols, []]
 
-            second_path = find_path(x, end, bonus_dict)     # Tìm đường đi từ điểm thưởng x đến end
-            if not second_path[0]:      # Nếu không có đường đi thì bỏ qua
-                continue
-            for point in bonus_dict:    # Nếu có điểm thưởng xuất hiện trong cả 2 nửa đường đi thì chỉ tính 1 lần
-                if point!=x and point in fisrt_path[2] and point in second_path[2]:
-                    second_path[1] -= bonus_dict[point]     # Trừ đi phần điểm thưởng bị trùng
-            if second_path[1] > min_path[0]:    # Nếu đường đi lớn hơn min thì bỏ qua
-                continue
-
-            if fisrt_path[1] + second_path[1] > min_path[0]:    # Nếu tổng 2 nửa đoạn đường lớn hơn min thì bỏ qua
-                continue
-            # Nếu tổng 2 nửa nhỏ hơn min hoặc (bằng min và x gần end hơn (tức second hay x->end nhỏ hơn))
-            elif fisrt_path[1] + second_path[1] < min_path[0] or second_path[1] < min_path[1]:
-                # Cập nhật min mới
-                # min = (tổng chi phí [0], chi phí x -> end [1], điểm thưởng x đc chọn [2], path nửa đoạn đường đầu [3])
-                min_path = (fisrt_path[1] + second_path[1], second_path[1], x, fisrt_path[2])
-
-        # Đường đi từ begin->end
-        main_path = find_path(begin, end, bonus_dict)
-        if main_path[0]:
-            if main_path[1] < min_path[0]:      # Đường đi chính nhỏ hơn đường đi qua điểm thưởng
-                path.extend(main_path[2][1:])   # Thêm đường đi chính vào path
-                cost += main_path[1]            # Thêm cost
-                break                           # Dừng vòng lặp vì đã đến end
-            else:
-                path.extend(min_path[3][1:])    # Thêm đường đi từ begin -> điểm thưởng [3] vào path, bỏ qua phần tử đầu đã có sẳn trong path
-                cost += min_path[0] - min_path[1]   # Thêm cost từ begin -> điểm thưởng x, tính bằng tổng chi phí [0] trừ chi phí x -> end [1]
-                begin = min_path[2]             # Xét đoạn đường đi mới với vị trí bắt đầu là từ điểm thưởng được chọn x [2]
-                for point in min_path[3]:       # Xét đoạn đường vừa được thêm vào path
-                    if point in bonus_dict:     # Nếu có đi qua điểm thưởng thì điểm thưởng đó không được tính nữa
-                        bonus_dict.pop(point)   # Bỏ điểm thưởng khỏi dict
-        else:
-            break
-    return cost, path
+    while len(queue):
+        current = queue.pop(0)
+        for point in short_matrix:
+            if point!= start and point!=current:
+                wayout = find_path(current, point, short_matrix[current])
+                if not wayout[0]:
+                    continue
+                if short_matrix[point][0] >= short_matrix[current][0] + wayout[1]:      # Nếu đường cũ lớn hơn đường đi mới thông qua current
+                    short_matrix[point][0] = short_matrix[current][0] + wayout[1]       # Chi phí mới
+                    short_matrix[point][1] = short_matrix[current][1] + wayout[2][1:]    # Đường đi mới bằng start -> current + current -> point
+                    if point!=end:
+                        queue.append(point)             # Thêm point vào queue để tiếp tục loang
+    return short_matrix[end]
 
 # wayoutDFS=dfs(graph, start, end)
 # wayoutBFS=bfs(graph, start, end)
@@ -305,6 +283,6 @@ def solve_bonus_map():
 # print(cost)
 # visualize_maze(matrix,bonus_points,start,end,b_path)
 
-ans, path = solve_bonus_map()
-print(ans)
-visualize_maze(matrix,bonus_points,start,end,path)
+ans = solve_bonus_map()
+print(ans[0])
+visualize_maze(matrix,bonus_points,start,end,ans[1])
