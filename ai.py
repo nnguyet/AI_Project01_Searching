@@ -75,7 +75,7 @@ def read_file(file_name: str = 'maze.txt'):
 
     return bonus_points, matrix
 
-bonus_points, matrix = read_file('./Maps/maze_map3.txt')
+bonus_points, matrix = read_file('./Maps/bonus_map5.txt')
 
 print(f'The height of the matrix: {len(matrix)}')
 print(f'The width of the matrix: {len(matrix[0])}')
@@ -283,22 +283,22 @@ def solve_bonus_map():
                         queue.append(point)
     return short_matrix[end]
 
-wayoutDFS=dfs(graph, start, end)
-visualize_maze(matrix,bonus_points,start,end,wayoutDFS)
-print(f'DFS: Cost = {len(wayoutDFS)-1}')
+# wayoutDFS=dfs(graph, start, end)
+# visualize_maze(matrix,bonus_points,start,end,wayoutDFS)
+# print(f'DFS: Cost = {len(wayoutDFS)-1}')
 
-wayoutBFS=bfs(graph, start, end)
-visualize_maze(matrix,bonus_points,start,end,wayoutBFS)
-print(f'DFS: Cost = {len(wayoutBFS)-1}')
+# wayoutBFS=bfs(graph, start, end)
+# visualize_maze(matrix,bonus_points,start,end,wayoutBFS)
+# print(f'DFS: Cost = {len(wayoutBFS)-1}')
 
-sol_GBFS = GBFS()
-visualize_maze(matrix,bonus_points,start,end,sol_GBFS)
-print(f'DFS: Cost = {len(sol_GBFS)-1}')
+# sol_GBFS = GBFS()
+# visualize_maze(matrix,bonus_points,start,end,sol_GBFS)
+# print(f'DFS: Cost = {len(sol_GBFS)-1}')
 
-sol_Astar = A_star()
-visualize_maze(matrix,bonus_points,start,end,sol_Astar)
-print(f'DFS: Cost = {len(sol_Astar)-1}')
+# sol_Astar = A_star()
+# visualize_maze(matrix,bonus_points,start,end,sol_Astar)
+# print(f'DFS: Cost = {len(sol_Astar)-1}')
 
-# ans = solve_bonus_map()
-# print(ans[0])
-# visualize_maze(matrix,bonus_points,start,end,ans[1])
+ans = solve_bonus_map()
+visualize_maze(matrix,bonus_points,start,end,ans[1])
+print(f'Cost = {ans[0]}')
