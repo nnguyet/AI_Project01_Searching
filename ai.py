@@ -254,6 +254,7 @@ def find_path(begin, end, past_point):
         cost -= 1       # Dư 1 bước do đã ở sẵn vị trí begin chứ không phải bước đến từ (0,0)
     return [way_out, cost, path]
 
+# Tìm đường đi từ start -> end mà tốn ít chi phí nhất trên bản đồ mê cung có điểm thưởng
 def solve_bonus_map():
     queue = [start]
     # short_matrix là dictionary lưu các key là start, end và các bonus point
