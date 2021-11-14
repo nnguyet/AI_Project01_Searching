@@ -2,7 +2,6 @@ import os
 import matplotlib.pyplot as plt
 from heapq import heappop
 from heapq import heappush
-from math import sqrt
 
 def visualize_maze(matrix, bonus, start, end, route=None):
     """
@@ -76,7 +75,7 @@ def read_file(file_name: str = 'maze.txt'):
 
     return bonus_points, matrix
 
-bonus_points, matrix = read_file('bonus_map5.txt')
+bonus_points, matrix = read_file('bonus_map3.txt')
 
 print(f'The height of the matrix: {len(matrix)}')
 print(f'The width of the matrix: {len(matrix[0])}')
@@ -159,8 +158,8 @@ def bfs(graph,start,end):
 # Tìm kiếm có thông tin
 
 # Hàm Heuristic - khoảng cách Manhattan: |end.X - pos.X| + |end.Y - pos.Y|
-def heuristic(pos, end):
-    return abs(pos[0]-end[0]) + abs(pos[1]-end[1])
+def heuristic(a, b):
+    return abs(a[0]-b[0]) + abs(a[1]-b[1])
 
 # GBFS
 def GBFS():
@@ -209,25 +208,33 @@ def A_star():
     return path
 
 # Bonus Map
+"""Hàm tìm đường đi ngắn nhất có thể từ begin đến end, với past_point là đường đi từ start -> begin.
+Hàm dựa trên thuật toán A*, đường đi chỉ là ngắn nhất trong phạm vi mở biên của A*,
+nên nếu có điểm thưởng tạo ra đường đi ngắn hơn nhưng ở cách xa thì coi như bỏ qua"""
 def find_path(begin, end, past_point):
     heap = [(0, begin)]
+    # (x,y):[g,h,b,(u,v)] -> [0]: số bước đi từ begin đến là g, [1]: heuristic khoảng cách (x,y) đến end là h
+    # [2]: giá trị điểm thưởng tại (x,y), [3]: (u,v) là nút cha đi đến (x,y)
     info = {begin:[0,heuristic(begin, end),0,(0,0)]}
-    way_out = False
+    way_out = False     # Biến cho biết có đường đi từ begin đến end hay không
 
-    while (len(heap)):
-        current = heappop(heap)[1]
+    while (len(heap)):      # Vẫn còn biên chưa mở
+        current = heappop(heap)[1]      # Mở biên có f = g + h + b là nhỏ nhất, current =  vị trí (x,y) tại đó
+        
         if current==end:
-            way_out = True
-            break
+            way_out = True      # Tìm được đến end -> có đường đi
+            break               # Dừng vòng lặp
+
+        # Tương tự thuật toán A*
         for neighbor in graph[current]:
             if neighbor not in info:
                 g = info[current][0] + 1
                 h = heuristic(neighbor, end)
-                b = 0
-                if neighbor not in past_point:
-                    for pts in bonus_points:
+                b = 0       # Mặc định các vị trí đều có điểm thưởng b = 0
+                if neighbor not in past_point:      # Nếu đó là vị trí điểm thưởng
+                    for pts in bonus_points:        # và chưa được ăn (không có trong đoạn đường start->begin đã đi qua)
                         if pts[0]==neighbor[0] and pts[1]==neighbor[1]:
-                            b = pts[2]
+                            b = pts[2]              # b = giá trị điểm thưởng lấy từ list bonus_points
                             break
                 info[neighbor] = [g, h, b, current]
                 heappush(heap,(g+h+b, neighbor))
@@ -238,6 +245,7 @@ def find_path(begin, end, past_point):
     path = []
     cost = 0
     track = end
+    # Nếu có đường đi thì backtracking tìm path và cost
     if way_out:
         while track!=(0,0):
             path.insert(0, track)
@@ -248,8 +256,8 @@ def find_path(begin, end, past_point):
 
 def solve_bonus_map():
     queue = [start]
-    # short_matrix là dictionary lưu ma trận rút gọn, chỉ gồm các key là start, end và các bonus point
-    # value là [chi phí từ start đến key [0], đường đi đến key [1] ]
+    # short_matrix là dictionary lưu các key là start, end và các bonus point
+    # value gồm [0]: chi phí đi từ start đến key, [1]: đường đi đến key
     short_matrix = {(x[0],x[1]):[rows*cols, []] for x in bonus_points}
     short_matrix[start] = [0, [start]]
     short_matrix[end] = [rows*cols, []]
@@ -257,21 +265,27 @@ def solve_bonus_map():
     while len(queue):
         current = queue.pop(0)
         for point in short_matrix:
-            if point!= start and point!=current:
-                wayout = find_path(current, point, short_matrix[current])
-                if not wayout[0]:
+            # Chỉ xét các điểm không nằm trong đoạn đường start->current đã đi qua
+            if point not in short_matrix[current][1]:
+                wayout = find_path(current, point, short_matrix[current][1])
+                
+                if not wayout[0]:       # Nếu không tìm được đường đi current->point thì bỏ qua
                     continue
-                if short_matrix[point][0] >= short_matrix[current][0] + wayout[1]:      # Nếu đường cũ lớn hơn đường đi mới thông qua current
-                    short_matrix[point][0] = short_matrix[current][0] + wayout[1]       # Chi phí mới
-                    short_matrix[point][1] = short_matrix[current][1] + wayout[2][1:]    # Đường đi mới bằng start -> current + current -> point
+
+                # Nếu đường đi cũ lớn hơn đường đi mới thông qua current thì update đường đi nhỏ hơn
+                # (start -> point) > (start -> current -> point)
+                if short_matrix[point][0] >= short_matrix[current][0] + wayout[1]:
+                    short_matrix[point][0] = short_matrix[current][0] + wayout[1]
+                    short_matrix[point][1] = short_matrix[current][1] + wayout[2][1:]
+                    # Vì point vừa được update nên thêm vào queue để xét đường đi mới đến các điểm khác
                     if point!=end:
-                        queue.append(point)             # Thêm point vào queue để tiếp tục loang
+                        queue.append(point)
     return short_matrix[end]
 
 # wayoutDFS=dfs(graph, start, end)
+# visualize_maze(matrix,bonus_points,start,end,wayoutDFS)
 # wayoutBFS=bfs(graph, start, end)
 # visualize_maze(matrix,bonus_points,start,end,wayoutBFS)
-# visualize_maze(matrix,bonus_points,start,end,wayoutDFS)
 # sol_GBFS = GBFS()
 # visualize_maze(matrix,bonus_points,start,end,sol_GBFS)
 # sol_Astar = A_star()
