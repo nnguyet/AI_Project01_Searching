@@ -75,7 +75,7 @@ def read_file(file_name: str = 'maze.txt'):
 
     return bonus_points, matrix
 
-bonus_points, matrix = read_file('bonus_map3.txt')
+bonus_points, matrix = read_file('./Maps/bonus_map3.txt')
 
 print(f'The height of the matrix: {len(matrix)}')
 print(f'The width of the matrix: {len(matrix[0])}')
