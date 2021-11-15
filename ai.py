@@ -75,44 +75,6 @@ def read_file(file_name: str = 'maze.txt'):
 
     return bonus_points, matrix
 
-bonus_points, matrix = read_file('./Maps/bonus_map5.txt')
-
-print(f'The height of the matrix: {len(matrix)}')
-print(f'The width of the matrix: {len(matrix[0])}')
-
-for i in range(len(matrix)):
-    for j in range(len(matrix[0])):
-        if matrix[i][j]=='S':
-            start=(i,j)
-
-        elif matrix[i][j]==' ':
-            if (i==0) or (i==len(matrix)-1) or (j==0) or (j==len(matrix[0])-1):
-                end=(i,j)
-                
-        else:
-            pass
-
-# Graph lưu vị trí liền kề có thể đi tới được từ vị trí (i,j)
-rows=len(matrix)
-cols=len(matrix[0])
-graph={}
-for i in range(1,rows-1):
-    for j in range(1,cols-1):
-        if matrix[i][j]!='x':
-            adj=[]
-            for loc in [(i,j+1),(i,j-1),(i+1,j),(i-1,j)]:
-                if matrix[loc[0]][loc[1]]!='x':
-                    adj.append(loc)
-            graph[(i,j)]=adj
-if end[0]==0:
-    graph[end] = [(end[0]+1,end[1])]
-elif end[0]==rows-1:
-    graph[end] = [(end[0]-1,end[1])]
-elif end[1]==0:
-    graph[end] = [(end[0],end[1]+1)]
-else:
-    graph[end] = [(end[0],end[1]-1)]
-
 # Tìm kiếm mù
 def dfs(graph, start, end):
     tracking={start:(0,0)}
@@ -162,7 +124,7 @@ def heuristic(a, b):
     return abs(a[0]-b[0]) + abs(a[1]-b[1])
 
 # GBFS
-def GBFS():
+def GBFS(graph,start,end):
     heap = []       # Priority Queue lưu các biên, phần tử có dạng (h,(x,y)) -> h = heuristic của (x,y)
     parent = {start:(0,0)}    # Dict để truy vết: (x,y):(a,b) -> Nút cha đi tới (x,y) là (a,b)
     current = start
@@ -182,7 +144,7 @@ def GBFS():
     return path
 
 # A*    F(n) = G(n) + H(n)      -> G(n) = bước đi từ start đến n
-def A_star():
+def A_star(graph,start,end):
     heap = []       # Priority Queue lưu các biên, phần tử có dạng (f,(x,y)) -> f = g+h
     # Dict lưu thông tin của (x,y):[g,h,(a,b)] -> thông tin g, h và nút cha (a,b) của (x,y)
     info = {start:[0,heuristic(start, end),(0,0)]}
@@ -211,7 +173,7 @@ def A_star():
 """Hàm tìm đường đi ngắn nhất có thể từ begin đến end, với past_point là đường đi từ start -> begin.
 Hàm dựa trên thuật toán A*, đường đi chỉ là ngắn nhất trong phạm vi mở biên của A*,
 nên nếu có điểm thưởng tạo ra đường đi ngắn hơn nhưng ở cách xa thì coi như bỏ qua"""
-def find_path(begin, end, past_point):
+def find_path(graph,begin, end, past_point,bonus_points):
     heap = [(0, begin)]
     # (x,y):[g,h,b,(u,v)] -> [0]: số bước đi từ begin đến là g, [1]: heuristic khoảng cách (x,y) đến end là h
     # [2]: giá trị điểm thưởng tại (x,y), [3]: (u,v) là nút cha đi đến (x,y)
@@ -255,7 +217,7 @@ def find_path(begin, end, past_point):
     return [way_out, cost, path]
 
 # Tìm đường đi từ start -> end mà tốn ít chi phí nhất trên bản đồ mê cung có điểm thưởng
-def solve_bonus_map():
+def solve_bonus_map(graph,start,end,rows,cols,bonus_points):
     queue = [start]
     # short_matrix là dictionary lưu các key là start, end và các bonus point
     # value gồm [0]: chi phí đi từ start đến key, [1]: đường đi đến key
@@ -268,7 +230,7 @@ def solve_bonus_map():
         for point in short_matrix:
             # Chỉ xét các điểm không nằm trong đoạn đường start->current đã đi qua
             if point not in short_matrix[current][1]:
-                wayout = find_path(current, point, short_matrix[current][1])
+                wayout = find_path(graph,current, point, short_matrix[current][1],bonus_points)
                 
                 if not wayout[0]:       # Nếu không tìm được đường đi current->point thì bỏ qua
                     continue
@@ -283,22 +245,78 @@ def solve_bonus_map():
                         queue.append(point)
     return short_matrix[end]
 
-# wayoutDFS=dfs(graph, start, end)
-# visualize_maze(matrix,bonus_points,start,end,wayoutDFS)
-# print(f'DFS: Cost = {len(wayoutDFS)-1}')
+def main():
+    print("Nhap 1 de chon map khong co diem thuong")
+    print("Nhap 2 de chon map co diem thuong")
+    mapType=int(input("Nhap loai map: "))
+    if mapType==1:
+        mapId=int(input("Nhap map muon kiem tra (1-6): "))
+        bonus_points, matrix = read_file(f'./Maps/maze_map{mapId}.txt')
+    elif mapType==2:
+        print("1-Map co 2 diem thuong")
+        print("2-Map co 3 diem thuong")
+        print("3-Map co 4 diem thuong")
+        print("4-Map co 5 diem thuong")
+        print("5-Map co 10 diem thuong")
+        mapId=int(input("Nhap map muon kiem tra (1-5): "))
+        bonus_points, matrix = read_file(f'./Maps/bonus_map{mapId}.txt')
+    else:
+        return
+    print(f'The height of the matrix: {len(matrix)}')
+    print(f'The width of the matrix: {len(matrix[0])}')
+    # Xác định 2 điểm đầu cuối
+    for i in range(len(matrix)):
+        for j in range(len(matrix[0])):
+            if matrix[i][j]=='S':
+                start=(i,j)
 
-# wayoutBFS=bfs(graph, start, end)
-# visualize_maze(matrix,bonus_points,start,end,wayoutBFS)
-# print(f'DFS: Cost = {len(wayoutBFS)-1}')
+            elif matrix[i][j]==' ':
+                if (i==0) or (i==len(matrix)-1) or (j==0) or (j==len(matrix[0])-1):
+                    end=(i,j)
+                    
+            else:
+                pass
 
-# sol_GBFS = GBFS()
-# visualize_maze(matrix,bonus_points,start,end,sol_GBFS)
-# print(f'DFS: Cost = {len(sol_GBFS)-1}')
+    # Graph lưu vị trí liền kề có thể đi tới được từ vị trí (i,j)
+    rows=len(matrix)
+    cols=len(matrix[0])
+    graph={}
+    for i in range(1,rows-1):
+        for j in range(1,cols-1):
+            if matrix[i][j]!='x':
+                adj=[]
+                for loc in [(i,j+1),(i,j-1),(i+1,j),(i-1,j)]:
+                    if matrix[loc[0]][loc[1]]!='x':
+                        adj.append(loc)
+                graph[(i,j)]=adj
+    if end[0]==0:
+        graph[end] = [(end[0]+1,end[1])]
+    elif end[0]==rows-1:
+        graph[end] = [(end[0]-1,end[1])]
+    elif end[1]==0:
+        graph[end] = [(end[0],end[1]+1)]
+    else:
+        graph[end] = [(end[0],end[1]-1)]
+    if mapType==1:
+        wayoutDFS=dfs(graph, start, end)
+        visualize_maze(matrix,bonus_points,start,end,wayoutDFS)
+        print(f'DFS: Cost = {len(wayoutDFS)-1}')
 
-# sol_Astar = A_star()
-# visualize_maze(matrix,bonus_points,start,end,sol_Astar)
-# print(f'DFS: Cost = {len(sol_Astar)-1}')
+        wayoutBFS=bfs(graph, start, end)
+        visualize_maze(matrix,bonus_points,start,end,wayoutBFS)
+        print(f'BFS: Cost = {len(wayoutBFS)-1}')
 
-ans = solve_bonus_map()
-visualize_maze(matrix,bonus_points,start,end,ans[1])
-print(f'Cost = {ans[0]}')
+        sol_GBFS = GBFS(graph, start, end)
+        visualize_maze(matrix,bonus_points,start,end,sol_GBFS)
+        print(f'GBFS: Cost = {len(sol_GBFS)-1}')
+
+        sol_Astar = A_star(graph, start, end)
+        visualize_maze(matrix,bonus_points,start,end,sol_Astar)
+        print(f'A*: Cost = {len(sol_Astar)-1}')
+    if mapType==2:
+        ans = solve_bonus_map(graph, start, end,rows,cols,bonus_points)
+        visualize_maze(matrix,bonus_points,start,end,ans[1])
+        print(f'Cost = {ans[0]}')
+
+if __name__=="__main__":
+    main()
