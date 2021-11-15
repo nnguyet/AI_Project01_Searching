@@ -251,7 +251,7 @@ def main():
     mapType=int(input("Nhap loai map: "))
     if mapType==1:
         mapId=int(input("Nhap map muon kiem tra (1-6): "))
-        bonus_points, matrix = read_file(f'./Maps/maze_map{mapId}.txt')
+        bonus_points, matrix = read_file(f'../Maps/maze_map{mapId}.txt')
     elif mapType==2:
         print("1-Map co 2 diem thuong")
         print("2-Map co 3 diem thuong")
@@ -259,7 +259,7 @@ def main():
         print("4-Map co 5 diem thuong")
         print("5-Map co 10 diem thuong")
         mapId=int(input("Nhap map muon kiem tra (1-5): "))
-        bonus_points, matrix = read_file(f'./Maps/bonus_map{mapId}.txt')
+        bonus_points, matrix = read_file(f'../Maps/bonus_map{mapId}.txt')
     else:
         return
     print(f'The height of the matrix: {len(matrix)}')
