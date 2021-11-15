@@ -97,7 +97,7 @@ def dfs(graph, start, end):
     path.append(end)
     return path[1:]
 
-def bfs(graph,start,end):
+def bfs(graph, start, end):
     queue=[]
     tracking={start:(0,0)}
     path=[]
@@ -124,7 +124,7 @@ def heuristic(a, b):
     return abs(a[0]-b[0]) + abs(a[1]-b[1])
 
 # GBFS
-def GBFS(graph,start,end):
+def GBFS(graph, start, end):
     heap = []       # Priority Queue lưu các biên, phần tử có dạng (h,(x,y)) -> h = heuristic của (x,y)
     parent = {start:(0,0)}    # Dict để truy vết: (x,y):(a,b) -> Nút cha đi tới (x,y) là (a,b)
     current = start
@@ -144,7 +144,7 @@ def GBFS(graph,start,end):
     return path
 
 # A*    F(n) = G(n) + H(n)      -> G(n) = bước đi từ start đến n
-def A_star(graph,start,end):
+def A_star(graph, start, end):
     heap = []       # Priority Queue lưu các biên, phần tử có dạng (f,(x,y)) -> f = g+h
     # Dict lưu thông tin của (x,y):[g,h,(a,b)] -> thông tin g, h và nút cha (a,b) của (x,y)
     info = {start:[0,heuristic(start, end),(0,0)]}
@@ -173,7 +173,7 @@ def A_star(graph,start,end):
 """Hàm tìm đường đi ngắn nhất có thể từ begin đến end, với past_point là đường đi từ start -> begin.
 Hàm dựa trên thuật toán A*, đường đi chỉ là ngắn nhất trong phạm vi mở biên của A*,
 nên nếu có điểm thưởng tạo ra đường đi ngắn hơn nhưng ở cách xa thì coi như bỏ qua"""
-def find_path(graph,begin, end, past_point,bonus_points):
+def find_path(graph, begin, end, past_point, bonus_points):
     heap = [(0, begin)]
     # (x,y):[g,h,b,(u,v)] -> [0]: số bước đi từ begin đến là g, [1]: heuristic khoảng cách (x,y) đến end là h
     # [2]: giá trị điểm thưởng tại (x,y), [3]: (u,v) là nút cha đi đến (x,y)
@@ -217,7 +217,7 @@ def find_path(graph,begin, end, past_point,bonus_points):
     return [way_out, cost, path]
 
 # Tìm đường đi từ start -> end mà tốn ít chi phí nhất trên bản đồ mê cung có điểm thưởng
-def solve_bonus_map(graph,start,end,rows,cols,bonus_points):
+def solve_bonus_map(graph, start, end, rows, cols, bonus_points):
     queue = [start]
     # short_matrix là dictionary lưu các key là start, end và các bonus point
     # value gồm [0]: chi phí đi từ start đến key, [1]: đường đi đến key
@@ -264,6 +264,7 @@ def main():
         return
     print(f'The height of the matrix: {len(matrix)}')
     print(f'The width of the matrix: {len(matrix[0])}')
+
     # Xác định 2 điểm đầu cuối
     for i in range(len(matrix)):
         for j in range(len(matrix[0])):
@@ -297,22 +298,26 @@ def main():
         graph[end] = [(end[0],end[1]+1)]
     else:
         graph[end] = [(end[0],end[1]-1)]
+
+    # Map bình thường
     if mapType==1:
         wayoutDFS=dfs(graph, start, end)
         visualize_maze(matrix,bonus_points,start,end,wayoutDFS)
-        print(f'DFS: Cost = {len(wayoutDFS)-1}')
+        print(f'DFS: Cost = {len(wayoutDFS)-1}\n')
 
         wayoutBFS=bfs(graph, start, end)
         visualize_maze(matrix,bonus_points,start,end,wayoutBFS)
-        print(f'BFS: Cost = {len(wayoutBFS)-1}')
+        print(f'BFS: Cost = {len(wayoutBFS)-1}\n')
 
         sol_GBFS = GBFS(graph, start, end)
         visualize_maze(matrix,bonus_points,start,end,sol_GBFS)
-        print(f'GBFS: Cost = {len(sol_GBFS)-1}')
+        print(f'GBFS: Cost = {len(sol_GBFS)-1}\n')
 
         sol_Astar = A_star(graph, start, end)
         visualize_maze(matrix,bonus_points,start,end,sol_Astar)
         print(f'A*: Cost = {len(sol_Astar)-1}')
+
+    # Map có điểm thưởng
     if mapType==2:
         ans = solve_bonus_map(graph, start, end,rows,cols,bonus_points)
         visualize_maze(matrix,bonus_points,start,end,ans[1])
