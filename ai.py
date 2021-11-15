@@ -241,7 +241,7 @@ def solve_bonus_map(graph,start,end,rows,cols,bonus_points):
                     short_matrix[point][0] = short_matrix[current][0] + wayout[1]
                     short_matrix[point][1] = short_matrix[current][1] + wayout[2][1:]
                     # Vì point vừa được update nên thêm vào queue để xét đường đi mới đến các điểm khác
-                    if point!=end:
+                    if point!=end and point not in queue:
                         queue.append(point)
     return short_matrix[end]
 
